@@ -40,7 +40,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth">
       <body
-        className={`${jakarta.variable} ${geistMono.variable} antialiased bg-[#0a0a0b] text-[#fafafa]`}
+        className={`${jakarta.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
       >
         {children}
       </body>

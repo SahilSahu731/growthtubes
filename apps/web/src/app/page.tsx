@@ -9,7 +9,7 @@ import { Footer } from "@/components/Footer";
 
 export default function Home() {
   return (
-    <div className="relative min-h-screen bg-[#0a0a0b] selection:bg-emerald-500/30">
+    <div className="relative min-h-screen bg-background selection:bg-emerald-500/30">
       <Navbar />
       
       <main>

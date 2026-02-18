@@ -24,13 +24,13 @@ export function WaitlistForm() {
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          className="flex items-center justify-center p-4 rounded-xl border border-emerald-500/20 bg-emerald-500/[0.02] text-center gap-3"
+          className="flex items-center justify-center p-4 rounded-xl border border-emerald-500/20 bg-emerald-500/2 text-center gap-3"
         >
           <CheckCircle2 className="text-emerald-500 w-5 h-5 shrink-0" />
           <span className="text-sm font-bold text-emerald-500">You&apos;re on the list.</span>
         </motion.div>
       ) : (
-        <form onSubmit={handleSubmit} className="flex gap-2 p-1 bg-white/[0.03] border border-white/5 rounded-xl">
+        <form onSubmit={handleSubmit} className="flex gap-2 p-1 bg-white/3 border border-white/5 rounded-xl">
           <input
             type="email"
             placeholder="Email address"

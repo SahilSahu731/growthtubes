@@ -12,7 +12,7 @@ export function Pricing() {
 
   return (
     <section id="pricing" className="py-24 px-6">
-      <div className="max-w-xl mx-auto border border-white/5 rounded-[2rem] p-10 md:p-14 text-center">
+      <div className="max-w-xl mx-auto border border-white/5 rounded-4xl p-10 md:p-14 text-center">
         <h2 className="text-sm font-bold text-emerald-500 uppercase tracking-widest mb-4">
           Early Access Offer
         </h2>

@@ -12,7 +12,7 @@ export function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <div className="inline-block px-3 py-1 rounded-full border border-white/5 bg-white/[0.02] text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-10">
+          <div className="inline-block px-3 py-1 rounded-full border border-white/5 bg-white/2 text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-10">
             Now in Private Beta
           </div>
           

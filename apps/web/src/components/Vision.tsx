@@ -11,7 +11,7 @@ export function Vision() {
   ];
 
   return (
-    <section id="vision" className="py-24 px-6 bg-white/[0.01] border-y border-white/5">
+    <section id="vision" className="py-24 px-6 bg-white/1 border-y border-white/5">
       <div className="max-w-6xl mx-auto">
         <div className="grid lg:grid-cols-2 gap-20 items-center">
           <div className="space-y-8">
@@ -26,7 +26,7 @@ export function Vision() {
 
           <div className="grid sm:grid-cols-1 gap-6">
             {points.map((point) => (
-              <div key={point} className="flex h-16 items-center gap-4 px-6 rounded-2xl border border-white/5 bg-white/[0.01]">
+              <div key={point} className="flex h-16 items-center gap-4 px-6 rounded-2xl border border-white/5 bg-white/1">
                 <ShieldCheck className="w-5 h-5 text-emerald-500 shrink-0" />
                 <span className="text-zinc-400 font-medium text-sm">
                   {point}
