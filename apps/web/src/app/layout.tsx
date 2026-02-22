@@ -32,13 +32,14 @@ export const metadata: Metadata = {
   }
 };
 
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="scroll-smooth">
+    <html lang="en" className="dark scroll-smooth">
       <body
         className={`${jakarta.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
       >
