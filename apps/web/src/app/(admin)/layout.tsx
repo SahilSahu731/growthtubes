@@ -2,8 +2,8 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Navbar } from "@/components/Navbar";
-import { AdminSidebar } from "@/components/AdminSidebar";
+import { AppNavbar } from "@/components/AppNavbar";
+import { AdminSidebar, AdminBottomBar } from "@/components/AdminSidebar";
 import { useAuthStore } from "@/store/authStore";
 
 export default function AdminLayout({
@@ -61,11 +61,12 @@ export default function AdminLayout({
 
   return (
     <>
-      <Navbar />
+      <AppNavbar />
       <AdminSidebar />
-      <main className="pt-16 pl-60 min-h-screen bg-background transition-all duration-300">
+      <main className="pt-16 pb-20 lg:pb-0 lg:pl-60 min-h-screen bg-background transition-all duration-300">
         {children}
       </main>
+      <AdminBottomBar />
     </>
   );
 }

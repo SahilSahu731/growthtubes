@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Navbar } from "@/components/Navbar";
+import { AppNavbar } from "@/components/AppNavbar";
 import { useAuthStore } from "@/store/authStore";
 
 export default function UserLayout({
@@ -45,7 +45,7 @@ export default function UserLayout({
 
   return (
     <>
-      <Navbar />
+      <AppNavbar />
       <main className="pt-16 min-h-screen bg-background">{children}</main>
     </>
   );
