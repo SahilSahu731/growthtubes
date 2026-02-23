@@ -2,18 +2,68 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Eye, EyeOff, ArrowRight, Mail, Lock, User } from "lucide-react";
+import {
+  Eye,
+  EyeOff,
+  ArrowRight,
+  Mail,
+  Lock,
+  User,
+  Check,
+  X,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { FaGithub, FaGoogle } from "react-icons/fa";
+import { useAuthStore } from "@/store/authStore";
+import OTPVerification from "@/components/OTPVerification";
+
+// Password strength checks
+const passwordChecks = [
+  { label: "At least 8 characters", test: (p: string) => p.length >= 8 },
+  { label: "Uppercase letter", test: (p: string) => /[A-Z]/.test(p) },
+  { label: "Lowercase letter", test: (p: string) => /[a-z]/.test(p) },
+  { label: "Number", test: (p: string) => /[0-9]/.test(p) },
+  {
+    label: "Special character",
+    test: (p: string) => /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(p),
+  },
+];
 
 export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showChecks, setShowChecks] = useState(false);
+
+  const {
+    isLoading,
+    error,
+    requiresVerification,
+    signup,
+    clearError,
+  } = useAuthStore();
+
+  // Show OTP verification if signup was successful
+  if (requiresVerification) {
+    return <OTPVerification />;
+  }
+
+  const allChecksPassed = passwordChecks.every((c) => c.test(password));
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !password || !allChecksPassed) return;
+    clearError();
+    try {
+      await signup(email, password, name || undefined);
+    } catch {
+      // Error handled in store
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -40,7 +90,7 @@ export default function SignupPage() {
           variant="outline"
           className="h-11 bg-white/3 border-white/10 hover:bg-white/6 hover:border-white/15 text-white rounded-xl transition-colors"
         >
-          <FaGithub className="size-4 mr-2" />  
+          <FaGithub className="size-4 mr-2" />
           GitHub
         </Button>
       </div>
@@ -53,8 +103,15 @@ export default function SignupPage() {
         </span>
       </div>
 
+      {/* Error */}
+      {error && (
+        <div className="bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3">
+          <p className="text-sm text-red-400">{error}</p>
+        </div>
+      )}
+
       {/* Form */}
-      <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+      <form className="space-y-4" onSubmit={handleSubmit}>
         <div className="space-y-2">
           <Label htmlFor="name" className="text-sm text-zinc-300">
             Full name
@@ -83,7 +140,11 @@ export default function SignupPage() {
               type="email"
               placeholder="you@example.com"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                clearError();
+              }}
+              required
               className="h-11 pl-10 bg-white/3 border-white/10 rounded-xl text-white placeholder:text-zinc-500 focus:border-emerald-500/50 focus:ring-emerald-500/20 transition-colors"
             />
           </div>
@@ -100,7 +161,12 @@ export default function SignupPage() {
               type={showPassword ? "text" : "password"}
               placeholder="••••••••"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                setShowChecks(true);
+                clearError();
+              }}
+              required
               className="h-11 pl-10 pr-10 bg-white/3 border-white/10 rounded-xl text-white placeholder:text-zinc-500 focus:border-emerald-500/50 focus:ring-emerald-500/20 transition-colors"
             />
             <button
@@ -115,17 +181,70 @@ export default function SignupPage() {
               )}
             </button>
           </div>
-          <p className="text-xs text-zinc-500">
-            Must be at least 8 characters
-          </p>
+
+          {/* Password strength checks */}
+          {showChecks && password.length > 0 && (
+            <div className="space-y-1.5 pt-1">
+              {passwordChecks.map((check) => {
+                const passed = check.test(password);
+                return (
+                  <div
+                    key={check.label}
+                    className="flex items-center gap-2 text-xs"
+                  >
+                    {passed ? (
+                      <Check className="size-3.5 text-emerald-400" />
+                    ) : (
+                      <X className="size-3.5 text-zinc-600" />
+                    )}
+                    <span
+                      className={
+                        passed ? "text-emerald-400" : "text-zinc-500"
+                      }
+                    >
+                      {check.label}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         <Button
           type="submit"
-          className="w-full h-11 bg-emerald-500 hover:bg-emerald-400 text-black font-semibold rounded-xl shadow-lg shadow-emerald-500/20 transition-colors duration-200 group"
+          disabled={isLoading || !email || !allChecksPassed}
+          className="w-full h-11 bg-emerald-500 hover:bg-emerald-400 text-black font-semibold rounded-xl shadow-lg shadow-emerald-500/20 transition-colors duration-200 group disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Create account
-          <ArrowRight className="size-4 ml-1 transition-transform group-hover:translate-x-0.5" />
+          {isLoading ? (
+            <span className="flex items-center gap-2">
+              <svg
+                className="animate-spin size-4"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                />
+              </svg>
+              Creating account…
+            </span>
+          ) : (
+            <>
+              Create account
+              <ArrowRight className="size-4 ml-1 transition-transform group-hover:translate-x-0.5" />
+            </>
+          )}
         </Button>
 
         <p className="text-xs text-center text-zinc-500 leading-relaxed">

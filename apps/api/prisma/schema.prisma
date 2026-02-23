@@ -5,8 +5,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
 }
 
 enum Role {
@@ -18,6 +16,28 @@ enum Role {
 enum Plan {
   FREE
   PRO
+}
+
+model User {
+  id                String    @id @default(uuid()) @db.Uuid
+  email             String    @unique
+  passwordHash      String
+  
+  isEmailVerified   Boolean   @default(false)
+  
+  otp               String?
+  otpExpiresAt      DateTime?
+  otpAttempts        Int       @default(0)
+  otpLastSentAt     DateTime?
+
+  refreshToken      String?
+
+  profile           Profile?
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@map("users")
 }
 
 model Profile {
@@ -37,6 +57,8 @@ model Profile {
 
   onboardingCompleted  Boolean  @default(false)
   lastLoginAt          DateTime?
+
+  user                 User     @relation(fields: [id], references: [id], onDelete: Cascade)
 
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt

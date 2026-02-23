@@ -8,11 +8,41 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { FaGoogle } from "react-icons/fa";
-import { FaGithub } from "react-icons/fa";  
+import { FaGithub } from "react-icons/fa";
+import { useAuthStore } from "@/store/authStore";
+import { useRouter } from "next/navigation";
+import OTPVerification from "@/components/OTPVerification";
+
 export default function LoginPage() {
+  const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  const {
+    isLoading,
+    error,
+    requiresVerification,
+    isAuthenticated,
+    login,
+    clearError,
+  } = useAuthStore();
+
+  // If login detects unverified email, show OTP screen
+  if (requiresVerification) {
+    return <OTPVerification />;
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !password) return;
+    clearError();
+    try {
+      await login(email, password);
+    } catch {
+      // Error handled in store
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -52,8 +82,15 @@ export default function LoginPage() {
         </span>
       </div>
 
+      {/* Error */}
+      {error && (
+        <div className="bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3">
+          <p className="text-sm text-red-400">{error}</p>
+        </div>
+      )}
+
       {/* Form */}
-      <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+      <form className="space-y-4" onSubmit={handleSubmit}>
         <div className="space-y-2">
           <Label htmlFor="email" className="text-sm text-zinc-300">
             Email
@@ -65,8 +102,12 @@ export default function LoginPage() {
               type="email"
               placeholder="you@example.com"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="h-11 pl-10 bg-white/3 border-white/10 rounded-xl text-white placeholder:text-zinc-500transition-colors"
+              onChange={(e) => {
+                setEmail(e.target.value);
+                clearError();
+              }}
+              required
+              className="h-11 pl-10 bg-white/3 border-white/10 rounded-xl text-white placeholder:text-zinc-500 transition-colors"
             />
           </div>
         </div>
@@ -90,7 +131,11 @@ export default function LoginPage() {
               type={showPassword ? "text" : "password"}
               placeholder="••••••••"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                clearError();
+              }}
+              required
               className="h-11 pl-10 pr-10 bg-white/3 border-white/10 rounded-xl text-white placeholder:text-zinc-500 transition-colors"
             />
             <button
@@ -109,10 +154,38 @@ export default function LoginPage() {
 
         <Button
           type="submit"
-          className="w-full h-11 bg-emerald-500 hover:bg-emerald-400 text-black font-semibold rounded-xl shadow-lg shadow-emerald-500/20 transition-colors duration-200 group"
+          disabled={isLoading || !email || !password}
+          className="w-full h-11 bg-emerald-500 hover:bg-emerald-400 text-black font-semibold rounded-xl shadow-lg shadow-emerald-500/20 transition-colors duration-200 group disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Sign in
-          <ArrowRight className="size-4 ml-1 transition-transform group-hover:translate-x-0.5" />
+          {isLoading ? (
+            <span className="flex items-center gap-2">
+              <svg
+                className="animate-spin size-4"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                />
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                />
+              </svg>
+              Signing in…
+            </span>
+          ) : (
+            <>
+              Sign in
+              <ArrowRight className="size-4 ml-1 transition-transform group-hover:translate-x-0.5" />
+            </>
+          )}
         </Button>
       </form>
 

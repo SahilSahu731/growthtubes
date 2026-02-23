@@ -6,17 +6,17 @@ import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import { globalLimiter } from './middleware/rateLimiter.js';
 import { errorHandler } from './middleware/errorHandler.js';
+import authRoutes from './routes/auth.routes.js';
 import * as Sentry from "@sentry/node";
 import "./instrument.js";
 
-import profileRouter from './routes/profile.js';
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-app.use(express.json());
+app.use(express.json({ limit: '10kb' }));
 app.use(cors({
     origin: process.env.FRONTEND_URL || "http://localhost:3000",
     credentials: true,
@@ -26,7 +26,7 @@ app.use(morgan('dev'));
 app.use(cookieParser());
 
 // Routes
-app.use('/api/profiles', profileRouter);
+app.use('/api/auth', authRoutes);
 
 app.get('/', (req, res) => {
     res.json({ status: 'ok', message: 'API is running' });

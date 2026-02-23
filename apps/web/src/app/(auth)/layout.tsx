@@ -1,11 +1,44 @@
+"use client";
+
+import { useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/store/authStore";
 
 export default function AuthLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const router = useRouter();
+  const { isAuthenticated, _hasHydrated } = useAuthStore();
+
+  // Redirect authenticated users away from auth pages
+  useEffect(() => {
+    if (_hasHydrated && isAuthenticated) {
+      router.replace("/");
+    }
+  }, [_hasHydrated, isAuthenticated, router]);
+
+  // Wait for hydration before rendering
+  if (!_hasHydrated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  // Don't render auth pages for authenticated users
+  if (isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen flex bg-background">
       {/* Left — Branding Image Panel (hidden on mobile) */}
@@ -52,10 +85,6 @@ export default function AuthLayout({
             </div>
           </div>
         </div>
-
-
-        {/* Rounded corner mask — curves the right edge */}
-        {/* <div className="absolute top-0 right-0 w-8 h-full bg-background rounded-l-3xl" /> */}
       </div>
 
       {/* Right — Form Panel */}

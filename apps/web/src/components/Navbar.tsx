@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Menu,
   User,
@@ -32,6 +33,7 @@ import {
   SheetTrigger,
   SheetClose,
 } from "@/components/ui/sheet";
+import { useAuthStore } from "@/store/authStore";
 
 const navLinks = [
   { label: "Features", href: "#features" },
@@ -39,31 +41,43 @@ const navLinks = [
   { label: "Pricing", href: "#pricing" },
 ];
 
-// Mock user — set to null for logged-out state, or an object for logged-in
-const mockUser: {
-  name: string;
-  email: string;
-  avatar?: string;
-  initials: string;
-} | null = null;
-
-// To preview logged-in state, uncomment below:
-// const mockUser = {
-//   name: "Sahil Sahu",
-//   email: "sahil@growthtubes.com",
-//   avatar: "",
-//   initials: "SS",
-// };
+function getInitials(email: string, name?: string | null): string {
+  if (name) {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  }
+  return email.substring(0, 2).toUpperCase();
+}
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
-  const user = mockUser;
+  const { user, isAuthenticated, _hasHydrated, getMe, logout } = useAuthStore();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Validate auth status on mount (refresh token from server)
+  useEffect(() => {
+    if (_hasHydrated) {
+      getMe();
+    }
+  }, [_hasHydrated, getMe]);
+
+  const userDisplay = _hasHydrated && isAuthenticated && user
+    ? {
+        name: user.profile?.fullName || user.email.split("@")[0],
+        email: user.email,
+        avatar: user.profile?.avatarUrl || "",
+        initials: getInitials(user.email, user.profile?.fullName),
+      }
+    : null;
 
   return (
     <nav
@@ -105,12 +119,18 @@ export function Navbar() {
 
         {/* Desktop Right Section */}
         <div className="hidden md:flex items-center gap-3">
-          {user ? <UserDropdown user={user} /> : <AuthButtons />}
+          {!_hasHydrated ? (
+            <div className="w-24 h-8" />
+          ) : userDisplay ? (
+            <UserDropdown user={userDisplay} onLogout={logout} />
+          ) : (
+            <AuthButtons />
+          )}
         </div>
 
         {/* Mobile Menu */}
         <div className="md:hidden">
-          <MobileMenu user={user} />
+          <MobileMenu user={userDisplay} onLogout={logout} />
         </div>
       </div>
     </nav>
@@ -147,14 +167,23 @@ function AuthButtons() {
 /* ── User Dropdown ───────────────────────────── */
 function UserDropdown({
   user,
+  onLogout,
 }: {
   user: { name: string; email: string; avatar?: string; initials: string };
+  onLogout: () => void;
 }) {
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await onLogout();
+    router.push("/login");
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button className="flex items-center gap-2 px-2 py-1.5 rounded-xl hover:bg-white/5 transition-colors duration-200 outline-none focus:ring-2 focus:ring-emerald-500/50 focus:ring-offset-2 focus:ring-offset-black group cursor-pointer">
-          <Avatar size="default" className="ring-2 ring-emerald-500/30">
+          <Avatar className="size-8 ring-2 ring-emerald-500/30">
             {user.avatar ? (
               <AvatarImage src={user.avatar} alt={user.name} />
             ) : null}
@@ -178,7 +207,7 @@ function UserDropdown({
       >
         <DropdownMenuLabel className="px-3 py-2.5">
           <div className="flex items-center gap-3">
-            <Avatar size="lg" className="ring-2 ring-emerald-500/30">
+            <Avatar className="size-10 ring-2 ring-emerald-500/30">
               {user.avatar ? (
                 <AvatarImage src={user.avatar} alt={user.name} />
               ) : null}
@@ -200,27 +229,38 @@ function UserDropdown({
         <DropdownMenuSeparator className="bg-white/5 my-1" />
 
         <DropdownMenuGroup>
+          <Link href="/dashboard">
           <DropdownMenuItem className="px-3 py-2 rounded-lg hover:bg-white/5 cursor-pointer gap-3 text-zinc-300 hover:text-white">
             <LayoutDashboard className="size-4 text-emerald-400" />
             <span>Dashboard</span>
           </DropdownMenuItem>
+          </Link>
+            <Link href="/courses">
           <DropdownMenuItem className="px-3 py-2 rounded-lg hover:bg-white/5 cursor-pointer gap-3 text-zinc-300 hover:text-white">
             <BookOpen className="size-4 text-emerald-400" />
             <span>My Courses</span>
           </DropdownMenuItem>
+          </Link>
+          <Link href="/profile">
           <DropdownMenuItem className="px-3 py-2 rounded-lg hover:bg-white/5 cursor-pointer gap-3 text-zinc-300 hover:text-white">
             <User className="size-4 text-emerald-400" />
             <span>Profile</span>
           </DropdownMenuItem>
+          </Link>
+          <Link href="/settings">
           <DropdownMenuItem className="px-3 py-2 rounded-lg hover:bg-white/5 cursor-pointer gap-3 text-zinc-300 hover:text-white">
             <Settings className="size-4 text-emerald-400" />
             <span>Settings</span>
           </DropdownMenuItem>
+          </Link>
         </DropdownMenuGroup>
 
         <DropdownMenuSeparator className="bg-white/5 my-1" />
 
-        <DropdownMenuItem className="px-3 py-2 rounded-lg hover:bg-red-500/10 cursor-pointer gap-3 text-zinc-400 hover:text-red-400">
+        <DropdownMenuItem
+          onClick={handleLogout}
+          className="px-3 py-2 rounded-lg hover:bg-red-500/10 cursor-pointer gap-3 text-zinc-400 hover:text-red-400"
+        >
           <LogOut className="size-4" />
           <span>Log out</span>
         </DropdownMenuItem>
@@ -232,6 +272,7 @@ function UserDropdown({
 /* ── Mobile Menu ─────────────────────────────── */
 function MobileMenu({
   user,
+  onLogout,
 }: {
   user: {
     name: string;
@@ -239,13 +280,21 @@ function MobileMenu({
     avatar?: string;
     initials: string;
   } | null;
+  onLogout: () => void;
 }) {
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await onLogout();
+    router.push("/login");
+  };
+
   return (
     <Sheet>
       <SheetTrigger asChild>
         <Button
           variant="ghost"
-          size="icon-sm"
+          size="icon"
           className="text-zinc-300 hover:text-white hover:bg-white/5"
         >
           <Menu className="size-5" />
@@ -277,7 +326,7 @@ function MobileMenu({
           {user && (
             <div className="p-5 border-b border-white/5">
               <div className="flex items-center gap-3">
-                <Avatar size="lg" className="ring-2 ring-emerald-500/30">
+                <Avatar className="size-10 ring-2 ring-emerald-500/30">
                   {user.avatar ? (
                     <AvatarImage src={user.avatar} alt={user.name} />
                   ) : null}
@@ -320,40 +369,40 @@ function MobileMenu({
                   </p>
                 </div>
                 <SheetClose asChild>
-                  <a
+                  <Link
                     href="/dashboard"
                     className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-zinc-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
                   >
                     <LayoutDashboard className="size-4 text-emerald-400" />
                     Dashboard
-                  </a>
+                  </Link>
                 </SheetClose>
                 <SheetClose asChild>
-                  <a
+                  <Link
                     href="/courses"
                     className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-zinc-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
                   >
                     <BookOpen className="size-4 text-emerald-400" />
                     My Courses
-                  </a>
+                  </Link>
                 </SheetClose>
                 <SheetClose asChild>
-                  <a
+                  <Link
                     href="/profile"
                     className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-zinc-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
                   >
                     <User className="size-4 text-emerald-400" />
                     Profile
-                  </a>
+                  </Link>
                 </SheetClose>
                 <SheetClose asChild>
-                  <a
+                  <Link
                     href="/settings"
                     className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-zinc-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
                   >
                     <Settings className="size-4 text-emerald-400" />
                     Settings
-                  </a>
+                  </Link>
                 </SheetClose>
               </>
             )}
@@ -364,6 +413,7 @@ function MobileMenu({
             {user ? (
               <Button
                 variant="ghost"
+                onClick={handleLogout}
                 className="w-full justify-start gap-3 text-zinc-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg"
               >
                 <LogOut className="size-4" />

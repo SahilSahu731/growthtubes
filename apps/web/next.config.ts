@@ -9,7 +9,7 @@ const cspHeader = `
   style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
   img-src 'self' blob: data: https://*.supabase.co https://img.clerk.com;
   font-src 'self' https://fonts.gstatic.com;
-  connect-src 'self' https://*.supabase.co https://api.clerk.dev https://vercel.live;
+  connect-src 'self' https://*.supabase.co https://api.clerk.dev https://vercel.live ${isDev ? "http://localhost:5000" : ""};
   frame-src https://*.clerk.accounts.dev;
   object-src 'none';
   base-uri 'self';
