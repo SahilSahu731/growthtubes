@@ -13,6 +13,7 @@ import {
   BookOpen,
   ChevronDown,
   Sparkles,
+  Shield,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -70,6 +71,10 @@ export function Navbar() {
     }
   }, [_hasHydrated, getMe]);
 
+  const userRole = _hasHydrated && isAuthenticated && user
+    ? user.profile?.role || "USER"
+    : null;
+
   const userDisplay = _hasHydrated && isAuthenticated && user
     ? {
         name: user.profile?.fullName || user.email.split("@")[0],
@@ -118,11 +123,32 @@ export function Navbar() {
         </div>
 
         {/* Desktop Right Section */}
-        <div className="hidden md:flex items-center gap-3">
+        <div className="hidden md:flex items-center gap-2">
           {!_hasHydrated ? (
             <div className="w-24 h-8" />
           ) : userDisplay ? (
-            <UserDropdown user={userDisplay} onLogout={logout} />
+            <>
+              {/* Role-specific quick access icons */}
+              {(userRole === "CREATOR" || userRole === "ADMIN") && (
+                <Link
+                  href="/creator/dashboard"
+                  className="relative p-2 rounded-xl hover:bg-white/5 transition-colors group"
+                  title="Creator Studio"
+                >
+                  <Sparkles className="size-[18px] text-emerald-400 group-hover:text-emerald-300 transition-colors" />
+                </Link>
+              )}
+              {userRole === "ADMIN" && (
+                <Link
+                  href="/admin/dashboard"
+                  className="relative p-2 rounded-xl hover:bg-white/5 transition-colors group"
+                  title="Admin Panel"
+                >
+                  <Shield className="size-[18px] text-red-400 group-hover:text-red-300 transition-colors" />
+                </Link>
+              )}
+              <UserDropdown user={userDisplay} onLogout={logout} />
+            </>
           ) : (
             <AuthButtons />
           )}
@@ -130,7 +156,7 @@ export function Navbar() {
 
         {/* Mobile Menu */}
         <div className="md:hidden">
-          <MobileMenu user={userDisplay} onLogout={logout} />
+          <MobileMenu user={userDisplay} onLogout={logout} userRole={userRole} />
         </div>
       </div>
     </nav>
@@ -273,6 +299,7 @@ function UserDropdown({
 function MobileMenu({
   user,
   onLogout,
+  userRole,
 }: {
   user: {
     name: string;
@@ -281,6 +308,7 @@ function MobileMenu({
     initials: string;
   } | null;
   onLogout: () => void;
+  userRole: string | null;
 }) {
   const router = useRouter();
 
@@ -404,6 +432,45 @@ function MobileMenu({
                     Settings
                   </Link>
                 </SheetClose>
+
+                {/* Role-specific links */}
+                {(userRole === "CREATOR" || userRole === "ADMIN") && (
+                  <>
+                    <div className="pt-4 pb-2">
+                      <p className="text-[11px] uppercase tracking-wider text-zinc-500 font-semibold px-3">
+                        Creator
+                      </p>
+                    </div>
+                    <SheetClose asChild>
+                      <Link
+                        href="/creator/dashboard"
+                        className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-zinc-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                      >
+                        <Sparkles className="size-4 text-emerald-400" />
+                        Creator Studio
+                      </Link>
+                    </SheetClose>
+                  </>
+                )}
+
+                {userRole === "ADMIN" && (
+                  <>
+                    <div className="pt-4 pb-2">
+                      <p className="text-[11px] uppercase tracking-wider text-zinc-500 font-semibold px-3">
+                        Admin
+                      </p>
+                    </div>
+                    <SheetClose asChild>
+                      <Link
+                        href="/admin/dashboard"
+                        className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-zinc-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
+                      >
+                        <Shield className="size-4 text-red-400" />
+                        Admin Panel
+                      </Link>
+                    </SheetClose>
+                  </>
+                )}
               </>
             )}
           </div>

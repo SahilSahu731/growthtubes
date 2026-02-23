@@ -197,9 +197,10 @@ export const verifyEmailOTP = async (req, res, next) => {
         otpExpiresAt: null,
         otpAttempts: 0,
       },
+      include: { profile: true },
     });
 
-    const { accessToken, refreshToken } = generateTokenPair(updatedUser);
+    const { accessToken, refreshToken } = generateTokenPair(updatedUser, updatedUser.profile?.role || 'USER');
 
     await prisma.user.update({
       where: { id: updatedUser.id },
@@ -302,6 +303,7 @@ export const login = async (req, res, next) => {
 
     const user = await prisma.user.findUnique({
       where: { email },
+      include: { profile: true },
     });
 
     if (!user) {
@@ -345,7 +347,7 @@ export const login = async (req, res, next) => {
       });
     }
 
-    const { accessToken, refreshToken } = generateTokenPair(user);
+    const { accessToken, refreshToken } = generateTokenPair(user, user.profile?.role || 'USER');
 
     await prisma.user.update({
       where: { id: user.id },
@@ -395,6 +397,7 @@ export const refreshAccessToken = async (req, res, next) => {
 
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
+      include: { profile: true },
     });
 
     if (!user || !user.refreshToken) {
@@ -418,7 +421,7 @@ export const refreshAccessToken = async (req, res, next) => {
       });
     }
 
-    const newTokens = generateTokenPair(user);
+    const newTokens = generateTokenPair(user, user.profile?.role || 'USER');
 
     await prisma.user.update({
       where: { id: user.id },

@@ -7,6 +7,9 @@ import cookieParser from 'cookie-parser';
 import { globalLimiter } from './middleware/rateLimiter.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import authRoutes from './routes/auth.routes.js';
+import profileRoutes from './routes/profile.routes.js';
+import creatorRoutes from './routes/creator.routes.js';
+import adminRoutes from './routes/admin.routes.js';
 import * as Sentry from "@sentry/node";
 import "./instrument.js";
 
@@ -27,6 +30,9 @@ app.use(cookieParser());
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/profile', profileRoutes);
+app.use('/api/creator', creatorRoutes);
+app.use('/api/admin', adminRoutes);
 
 app.get('/', (req, res) => {
     res.json({ status: 'ok', message: 'API is running' });

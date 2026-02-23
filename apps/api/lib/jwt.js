@@ -52,11 +52,12 @@ export const verifyRefreshToken = (token) => {
 /**
  * Generate both tokens for a user
  */
-export const generateTokenPair = (user) => {
+export const generateTokenPair = (user, role = 'USER') => {
   const payload = {
     userId: user.id,
     email: user.email,
     isEmailVerified: user.isEmailVerified,
+    role,
   };
 
   return {
