@@ -150,7 +150,7 @@ export function AdminBottomBar() {
   const pathname = usePathname();
 
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-zinc-950/95 backdrop-blur-2xl border-t border-white/[0.06]">
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-zinc-950/95 backdrop-blur-2xl border-t border-white/6">
       <div className="flex items-center justify-around h-16 px-1 max-w-lg mx-auto">
         {bottomTabs.map((tab) => {
           const isActive = pathname === tab.href;

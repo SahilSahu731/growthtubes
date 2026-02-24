@@ -1,8 +1,5 @@
 import prisma from '../lib/prisma.js';
 
-/**
- * Helper: generate a URL-safe slug from a name
- */
 function slugify(text) {
   return text
     .toLowerCase()
@@ -13,10 +10,6 @@ function slugify(text) {
     .replace(/^-+|-+$/g, '');
 }
 
-/**
- * GET /api/admin/categories
- * List all categories (with optional active filter)
- */
 export const getCategories = async (req, res, next) => {
   try {
     const { active } = req.query;
@@ -39,10 +32,6 @@ export const getCategories = async (req, res, next) => {
   }
 };
 
-/**
- * GET /api/admin/categories/:id
- * Get a single category by ID
- */
 export const getCategoryById = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -67,10 +56,6 @@ export const getCategoryById = async (req, res, next) => {
   }
 };
 
-/**
- * POST /api/admin/categories
- * Create a new category
- */
 export const createCategory = async (req, res, next) => {
   try {
     const { name, description, icon, color, sortOrder } = req.body;
@@ -141,10 +126,6 @@ export const createCategory = async (req, res, next) => {
   }
 };
 
-/**
- * PUT /api/admin/categories/:id
- * Update a category
- */
 export const updateCategory = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -227,10 +208,6 @@ export const updateCategory = async (req, res, next) => {
   }
 };
 
-/**
- * DELETE /api/admin/categories/:id
- * Delete a category
- */
 export const deleteCategory = async (req, res, next) => {
   try {
     const { id } = req.params;

@@ -7,6 +7,7 @@ import {
   UserCheck,
   Palette,
   Loader2,
+  FolderOpen,
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import api from "@/lib/api";
@@ -16,6 +17,7 @@ interface DashboardStats {
   verifiedUsers: number;
   totalProfiles: number;
   creatorCount: number;
+  totalCategories: number;
 }
 
 export default function AdminDashboard() {
@@ -65,6 +67,13 @@ export default function AdminDashboard() {
           icon: Shield,
           color: "text-amber-400",
           bg: "bg-amber-500/10",
+        },
+        {
+          label: "Categories",
+          value: stats.totalCategories,
+          icon: FolderOpen,
+          color: "text-cyan-400",
+          bg: "bg-cyan-500/10",
         },
       ]
     : [];
@@ -143,6 +152,20 @@ export default function AdminDashboard() {
                   </p>
                   <p className="text-xs text-zinc-500">
                     Assign roles and permissions
+                  </p>
+                </div>
+              </a>
+              <a
+                href="/admin/categories"
+                className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/2 border border-white/5 hover:bg-white/5 hover:border-white/10 transition-colors"
+              >
+                <FolderOpen className="size-5 text-cyan-400" />
+                <div>
+                  <p className="text-sm font-medium text-white">
+                    Categories
+                  </p>
+                  <p className="text-xs text-zinc-500">
+                    Manage course categories
                   </p>
                 </div>
               </a>
