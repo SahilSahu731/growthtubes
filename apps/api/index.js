@@ -10,6 +10,7 @@ import authRoutes from './routes/auth.routes.js';
 import profileRoutes from './routes/profile.routes.js';
 import creatorRoutes from './routes/creator.routes.js';
 import adminRoutes from './routes/admin.routes.js';
+import categoryRoutes from './routes/category.routes.js';
 import * as Sentry from "@sentry/node";
 import "./instrument.js";
 
@@ -33,6 +34,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/creator', creatorRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/categories', categoryRoutes);
 
 app.get('/', (req, res) => {
     res.json({ status: 'ok', message: 'API is running' });

@@ -13,6 +13,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Crown,
+  FolderOpen,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -30,6 +31,7 @@ const sidebarLinks = [
     items: [
       { label: "Users", href: "/admin/users", icon: Users },
       { label: "Roles", href: "/admin/roles", icon: Shield },
+      { label: "Categories", href: "/admin/categories", icon: FolderOpen },
       { label: "Content", href: "/admin/content", icon: FileText },
     ],
   },
@@ -46,8 +48,8 @@ const sidebarLinks = [
 const bottomTabs = [
   { label: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
   { label: "Users", href: "/admin/users", icon: Users },
-  { label: "Roles", href: "/admin/roles", icon: Shield, isCenter: true },
-  { label: "Reports", href: "/admin/reports", icon: AlertTriangle },
+  { label: "Categories", href: "/admin/categories", icon: FolderOpen, isCenter: true },
+  { label: "Roles", href: "/admin/roles", icon: Shield },
   { label: "Settings", href: "/admin/settings", icon: Settings },
 ];
 

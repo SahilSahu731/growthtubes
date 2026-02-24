@@ -1,6 +1,13 @@
 import { Router } from 'express';
 import { adminMiddleware } from '../middleware/auth.js';
 import prisma from '../lib/prisma.js';
+import {
+  getCategories,
+  getCategoryById,
+  createCategory,
+  updateCategory,
+  deleteCategory,
+} from '../controllers/category.controller.js';
 
 const router = Router();
 
@@ -18,6 +25,7 @@ router.get('/dashboard', async (req, res, next) => {
     const creatorCount = await prisma.profile.count({
       where: { role: 'CREATOR' },
     });
+    const totalCategories = await prisma.category.count();
 
     res.status(200).json({
       status: 'success',
@@ -28,6 +36,7 @@ router.get('/dashboard', async (req, res, next) => {
           verifiedUsers,
           totalProfiles,
           creatorCount,
+          totalCategories,
         },
       },
     });
@@ -122,5 +131,12 @@ router.put('/users/:userId/role', async (req, res, next) => {
     next(error);
   }
 });
+
+// ── Category routes ─────────────────────────────
+router.get('/categories', getCategories);
+router.get('/categories/:id', getCategoryById);
+router.post('/categories', createCategory);
+router.put('/categories/:id', updateCategory);
+router.delete('/categories/:id', deleteCategory);
 
 export default router;
