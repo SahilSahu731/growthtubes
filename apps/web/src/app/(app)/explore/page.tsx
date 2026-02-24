@@ -91,12 +91,12 @@ export default function ExplorePage() {
           </div>
         </section>
 
-        {/* Category Slider — YouTube / Fiverr style */}
+        {/* Category Slider */}
         <section className="sticky top-16 z-30 bg-zinc-950/90 backdrop-blur-xl border-b border-white/5">
           <div className="max-w-7xl mx-auto relative">
             {/* Left scroll shadow + button */}
             {canScrollLeft && (
-              <div className="absolute left-0 top-0 bottom-0 z-10 flex items-center">
+              <div className="absolute left-0 top-0 bottom-0 z-10 hidden lg:flex items-center">
                 <div className="w-16 h-full bg-linear-to-r from-zinc-950 to-transparent absolute left-0" />
                 <button
                   onClick={() => scroll("left")}
@@ -110,7 +110,8 @@ export default function ExplorePage() {
             {/* Scrollable categories */}
             <div
               ref={scrollRef}
-              className="flex items-center gap-2 px-4 sm:px-6 py-3 overflow-x-auto scrollbar-none"
+              style={{ msOverflowStyle: 'none', scrollbarWidth: 'none' }}
+              className="flex items-center gap-2 px-4 sm:px-6 py-3 overflow-x-auto scrollbar-none [&::-webkit-scrollbar]:hidden"
             >
               {/* All chip */}
               <button
@@ -186,7 +187,7 @@ export default function ExplorePage() {
 
             {/* Right scroll shadow + button */}
             {canScrollRight && (
-              <div className="absolute right-0 top-0 bottom-0 z-10 flex items-center">
+              <div className="absolute right-0 top-0 bottom-0 z-10 hidden lg:flex items-center">
                 <div className="w-16 h-full bg-linear-to-l from-zinc-950 to-transparent absolute right-0" />
                 <button
                   onClick={() => scroll("right")}
