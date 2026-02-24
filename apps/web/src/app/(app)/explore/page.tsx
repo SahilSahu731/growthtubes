@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { Navbar } from "@/components/Navbar";
-import { Footer } from "@/components/Footer";
 import { DynamicIcon, isValidIconName } from "@/components/DynamicIcon";
 import {
   ChevronLeft,
@@ -72,10 +70,8 @@ export default function ExplorePage() {
   };
 
   return (
-    <div className="relative min-h-screen bg-background selection:bg-emerald-500/30">
-      <Navbar />
-
-      <main className="pt-16">
+    <div className="selection:bg-emerald-500/30">
+      <main>
         {/* Hero */}
         <section className="relative overflow-hidden">
           <div className="absolute inset-0 bg-linear-to-b from-emerald-500/5 via-transparent to-transparent" />
@@ -298,8 +294,6 @@ export default function ExplorePage() {
           )}
         </section>
       </main>
-
-      <Footer />
     </div>
   );
 }

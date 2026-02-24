@@ -11,8 +11,13 @@ interface User {
     username: string;
     fullName: string | null;
     avatarUrl: string | null;
+    bio: string | null;
     role: string;
     plan: string;
+    isPremium: boolean;
+    streakCount: number;
+    longestStreak: number;
+    onboardingCompleted: boolean;
   } | null;
 }
 

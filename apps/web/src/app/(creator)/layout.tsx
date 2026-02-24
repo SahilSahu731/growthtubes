@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { AppNavbar } from "@/components/AppNavbar";
+import { Navbar } from "@/components/Navbar";
 import { CreatorSidebar, CreatorBottomBar } from "@/components/CreatorSidebar";
 import { useAuthStore } from "@/store/authStore";
 
@@ -61,7 +61,7 @@ export default function CreatorLayout({
 
   return (
     <>
-      <AppNavbar />
+      <Navbar />
       <CreatorSidebar />
       <main className="pt-16 pb-20 lg:pb-0 lg:pl-60 min-h-screen bg-background transition-all duration-300">
         {children}

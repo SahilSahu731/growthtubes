@@ -2,10 +2,11 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { AppNavbar } from "@/components/AppNavbar";
+import { Navbar } from "@/components/Navbar";
+import { AppSidebar, AppBottomBar } from "@/components/AppSidebar";
 import { useAuthStore } from "@/store/authStore";
 
-export default function UserLayout({
+export default function AppLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -27,15 +28,7 @@ export default function UserLayout({
     }
   }, [_hasHydrated, isAuthenticated, router]);
 
-  if (!_hasHydrated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
+  if (!_hasHydrated || !isAuthenticated) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
@@ -45,8 +38,12 @@ export default function UserLayout({
 
   return (
     <>
-      <AppNavbar />
-      <main className="pt-16 min-h-screen bg-background">{children}</main>
+      <Navbar />
+      <AppSidebar />
+      <main className="pt-16 pb-20 lg:pb-0 lg:pl-60 min-h-screen bg-background transition-all duration-300">
+        {children}
+      </main>
+      <AppBottomBar />
     </>
   );
 }
