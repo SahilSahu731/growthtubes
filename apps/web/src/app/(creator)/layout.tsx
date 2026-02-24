@@ -2,9 +2,10 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Navbar } from "@/components/Navbar";
-import { CreatorSidebar, CreatorBottomBar } from "@/components/CreatorSidebar";
+import { CreatorSidebar, MobileCreatorSidebar, CreatorBottomBar } from "@/components/CreatorSidebar";
+import { TopBar } from "@/components/TopBar";
 import { useAuthStore } from "@/store/authStore";
+import { useSidebarStore } from "@/store/sidebarStore";
 
 export default function CreatorLayout({
   children,
@@ -13,6 +14,7 @@ export default function CreatorLayout({
 }) {
   const router = useRouter();
   const { user, isAuthenticated, _hasHydrated, getMe } = useAuthStore();
+  const collapsed = useSidebarStore((s) => s.collapsed);
 
   useEffect(() => {
     if (_hasHydrated) {
@@ -60,13 +62,22 @@ export default function CreatorLayout({
   }
 
   return (
-    <>
-      <Navbar />
+    <div className="min-h-screen bg-background">
       <CreatorSidebar />
-      <main className="pt-16 pb-20 lg:pb-0 lg:pl-60 min-h-screen bg-background transition-all duration-300">
-        {children}
-      </main>
+      <MobileCreatorSidebar />
+
+      <div
+        className={`flex flex-col min-h-screen transition-all duration-300 ${
+          collapsed ? "lg:pl-[68px]" : "lg:pl-60"
+        }`}
+      >
+        <TopBar />
+        <main className="flex-1 pb-20 lg:pb-0">
+          {children}
+        </main>
+      </div>
+
       <CreatorBottomBar />
-    </>
+    </div>
   );
 }

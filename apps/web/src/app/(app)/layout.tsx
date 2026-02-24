@@ -2,9 +2,10 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Navbar } from "@/components/Navbar";
-import { AppSidebar, AppBottomBar } from "@/components/AppSidebar";
+import { AppSidebar, MobileSidebar, AppBottomBar } from "@/components/AppSidebar";
+import { TopBar } from "@/components/TopBar";
 import { useAuthStore } from "@/store/authStore";
+import { useSidebarStore } from "@/store/sidebarStore";
 
 export default function AppLayout({
   children,
@@ -13,6 +14,7 @@ export default function AppLayout({
 }) {
   const router = useRouter();
   const { isAuthenticated, _hasHydrated, getMe } = useAuthStore();
+  const collapsed = useSidebarStore((s) => s.collapsed);
 
   // Validate session on mount
   useEffect(() => {
@@ -37,13 +39,30 @@ export default function AppLayout({
   }
 
   return (
-    <>
-      <Navbar />
+    <div className="min-h-screen bg-background">
+      {/* Desktop sidebar */}
       <AppSidebar />
-      <main className="pt-16 pb-20 lg:pb-0 lg:pl-60 min-h-screen bg-background transition-all duration-300">
-        {children}
-      </main>
+
+      {/* Mobile sidebar (overlay) */}
+      <MobileSidebar />
+
+      {/* Content area — sits next to sidebar, no top navbar */}
+      <div
+        className={`flex flex-col min-h-screen transition-all duration-300 ${
+          collapsed ? "lg:pl-[68px]" : "lg:pl-60"
+        }`}
+      >
+        {/* Top bar (breadcrumbs + search + avatar) */}
+        <TopBar />
+
+        {/* Main content */}
+        <main className="flex-1 pb-20 lg:pb-0">
+          {children}
+        </main>
+      </div>
+
+      {/* Mobile bottom bar */}
       <AppBottomBar />
-    </>
+    </div>
   );
 }
