@@ -42,7 +42,8 @@ export default function NewCoursePage() {
   const [description, setDescription] = useState("");
   const [level, setLevel] = useState("ALL_LEVELS");
   const [categoryId, setCategoryId] = useState("");
-  const [thumbnail, setThumbnail] = useState("");
+  const [thumbnail, setThumbnail] = useState<File | null>(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(null);
   const [isFree, setIsFree] = useState(true);
   const [price, setPrice] = useState(0);
   const [language, setLanguage] = useState("English");
@@ -83,17 +84,20 @@ export default function NewCoursePage() {
 
     setIsSaving(true);
     try {
-      const { data } = await api.post("/creator/courses", {
-        title: title.trim(),
-        shortDescription: shortDescription.trim() || null,
-        description: description.trim() || null,
-        level,
-        categoryId: categoryId || null,
-        thumbnail: thumbnail.trim() || null,
-        isFree,
-        price: isFree ? 0 : price,
-        language: language.trim() || "English",
-        tags,
+      const formData = new FormData();
+      formData.append("title", title.trim());
+      if (shortDescription.trim()) formData.append("shortDescription", shortDescription.trim());
+      if (description.trim()) formData.append("description", description.trim());
+      formData.append("level", level);
+      if (categoryId) formData.append("categoryId", categoryId);
+      if (thumbnail) formData.append("thumbnail", thumbnail);
+      formData.append("isFree", String(isFree));
+      formData.append("price", String(isFree ? 0 : price));
+      formData.append("language", language.trim() || "English");
+      tags.forEach((tag) => formData.append("tags[]", tag));
+
+      const { data } = await api.post("/creator/courses", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
 
       router.push(`/creator/courses/${data.data.course.id}`);
@@ -224,30 +228,34 @@ export default function NewCoursePage() {
           </div>
         </div>
 
-        {/* Thumbnail URL */}
+        {/* Thumbnail Upload */}
         <div>
           <label className="block text-sm font-medium text-zinc-300 mb-1.5">
-            Thumbnail URL
+            Thumbnail Image
           </label>
           <div className="relative">
-            <ImageIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-zinc-500" />
             <input
-              type="url"
-              value={thumbnail}
-              onChange={(e) => setThumbnail(e.target.value)}
-              placeholder="https://example.com/thumbnail.jpg"
-              className="w-full h-11 pl-10 pr-4 rounded-xl bg-zinc-900/50 border border-white/10 text-sm text-white placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/30 transition-all"
+              type="file"
+              accept="image/jpeg, image/png, image/webp, image/gif"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  setThumbnail(file);
+                  setThumbnailPreview(URL.createObjectURL(file));
+                } else {
+                  setThumbnail(null);
+                  setThumbnailPreview(null);
+                }
+              }}
+              className="w-full text-sm text-zinc-300 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-medium file:bg-emerald-500/10 file:text-emerald-400 hover:file:bg-emerald-500/20 file:transition-colors file:cursor-pointer bg-zinc-900/50 rounded-xl border border-white/10"
             />
           </div>
-          {thumbnail && (
-            <div className="mt-2 rounded-xl overflow-hidden border border-white/5 w-48 h-28">
+          {thumbnailPreview && (
+            <div className="mt-3 rounded-xl overflow-hidden border border-white/5 w-48 h-28">
               <img
-                src={thumbnail}
+                src={thumbnailPreview}
                 alt="Preview"
                 className="w-full h-full object-cover"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).style.display = "none";
-                }}
               />
             </div>
           )}

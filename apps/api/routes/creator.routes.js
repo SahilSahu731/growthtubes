@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import multer from 'multer';
 import { creatorMiddleware } from '../middleware/auth.js';
 import {
   getCreatorCourses,
@@ -17,6 +18,12 @@ import {
 } from '../controllers/course.controller.js';
 
 const router = Router();
+
+// Multer — in-memory storage for thumbnail uploads
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+});
 
 // All creator routes require CREATOR or ADMIN role
 router.use(creatorMiddleware);
@@ -56,8 +63,8 @@ router.get('/dashboard', async (req, res, next) => {
 // ── Courses ─────────────────────────────────
 router.get('/courses', getCreatorCourses);
 router.get('/courses/:id', getCreatorCourse);
-router.post('/courses', createCourse);
-router.patch('/courses/:id', updateCourse);
+router.post('/courses', upload.single('thumbnail'), createCourse);
+router.patch('/courses/:id', upload.single('thumbnail'), updateCourse);
 router.delete('/courses/:id', deleteCourse);
 router.patch('/courses/:id/publish', publishCourse);
 router.patch('/courses/:id/unpublish', unpublishCourse);

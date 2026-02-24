@@ -1,4 +1,9 @@
 import prisma from '../lib/prisma.js';
+import supabase from '../lib/supabase.js';
+
+const THUMBNAIL_BUCKET = 'thumbnails';
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 
 function slugify(text) {
   return text
@@ -144,6 +149,42 @@ export const createCourse = async (req, res, next) => {
       slug = `${slug}-${Date.now().toString(36)}`;
     }
 
+    let thumbnailUrl = thumbnail?.trim() || null;
+
+    // Handle thumbnail upload if file is provided
+    if (req.file) {
+      const { buffer, mimetype, size, originalname } = req.file;
+
+      if (!ALLOWED_TYPES.includes(mimetype)) {
+        return res.status(400).json({ status: 'error', message: 'Invalid file type. Allowed: JPEG, PNG, WebP, GIF' });
+      }
+
+      if (size > MAX_FILE_SIZE) {
+        return res.status(400).json({ status: 'error', message: 'File too large. Maximum size is 5MB' });
+      }
+
+      const ext = originalname.split('.').pop() || mimetype.split('/')[1];
+      const filePath = `courses/${creatorId}/${slug}-${Date.now()}.${ext}`;
+
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from(THUMBNAIL_BUCKET)
+        .upload(filePath, buffer, {
+          contentType: mimetype,
+          upsert: true,
+        });
+
+      if (uploadError) {
+        return res.status(500).json({ status: 'error', message: 'Failed to upload thumbnail' });
+      }
+
+      const { data: urlData } = supabase.storage
+        .from(THUMBNAIL_BUCKET)
+        .getPublicUrl(filePath);
+
+      thumbnailUrl = urlData.publicUrl;
+    }
+
+
     // Validate category if provided
     if (categoryId) {
       const category = await prisma.category.findUnique({ where: { id: categoryId } });
@@ -165,7 +206,7 @@ export const createCourse = async (req, res, next) => {
         slug,
         description: description?.trim() || null,
         shortDescription: shortDescription?.trim() || null,
-        thumbnail: thumbnail?.trim() || null,
+        thumbnail: thumbnailUrl,
         level: courseLevel,
         creatorId,
         categoryId: categoryId || null,
@@ -250,7 +291,44 @@ export const updateCourse = async (req, res, next) => {
 
     if (description !== undefined) updateData.description = description?.trim() || null;
     if (shortDescription !== undefined) updateData.shortDescription = shortDescription?.trim() || null;
+    
+    // Explicit string URL update (fallback)
     if (thumbnail !== undefined) updateData.thumbnail = thumbnail?.trim() || null;
+    
+    // File upload logic
+    if (req.file) {
+      const { buffer, mimetype, size, originalname } = req.file;
+
+      if (!ALLOWED_TYPES.includes(mimetype)) {
+        return res.status(400).json({ status: 'error', message: 'Invalid file type. Allowed: JPEG, PNG, WebP, GIF' });
+      }
+      if (size > MAX_FILE_SIZE) {
+        return res.status(400).json({ status: 'error', message: 'File too large. Maximum size is 5MB' });
+      }
+
+      const ext = originalname.split('.').pop() || mimetype.split('/')[1];
+      // Use existing slug or newly generated slug for file name
+      const fileSlug = updateData.slug || existing.slug;
+      const filePath = `courses/${creatorId}/${fileSlug}-${Date.now()}.${ext}`;
+
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from(THUMBNAIL_BUCKET)
+        .upload(filePath, buffer, {
+          contentType: mimetype,
+          upsert: true,
+        });
+
+      if (uploadError) {
+        return res.status(500).json({ status: 'error', message: 'Failed to upload thumbnail' });
+      }
+
+      const { data: urlData } = supabase.storage
+        .from(THUMBNAIL_BUCKET)
+        .getPublicUrl(filePath);
+
+      updateData.thumbnail = urlData.publicUrl;
+    }
+    
     if (language !== undefined) updateData.language = language?.trim() || 'English';
 
     if (level !== undefined) {
