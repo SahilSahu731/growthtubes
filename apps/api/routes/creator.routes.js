@@ -1,51 +1,100 @@
 import { Router } from 'express';
 import { creatorMiddleware } from '../middleware/auth.js';
+import {
+  getCreatorCourses,
+  getCreatorCourse,
+  createCourse,
+  updateCourse,
+  deleteCourse,
+  publishCourse,
+  unpublishCourse,
+  createSection,
+  updateSection,
+  deleteSection,
+  createLesson,
+  updateLesson,
+  deleteLesson,
+} from '../controllers/course.controller.js';
 
 const router = Router();
 
 // All creator routes require CREATOR or ADMIN role
 router.use(creatorMiddleware);
 
-// GET /api/creator/dashboard
-router.get('/dashboard', (req, res) => {
-  res.status(200).json({
-    status: 'success',
-    message: 'Creator dashboard data',
-    data: {
-      userId: req.user.userId,
-      role: req.user.role,
-      stats: {
-        totalCourses: 0,
-        totalStudents: 0,
-        totalRevenue: 0,
-        publishedCourses: 0,
+// ── Dashboard ───────────────────────────────
+router.get('/dashboard', async (req, res, next) => {
+  try {
+    const { default: prisma } = await import('../lib/prisma.js');
+    const creatorId = req.user.userId;
+
+    const [totalCourses, publishedCourses, totalStudents] = await Promise.all([
+      prisma.course.count({ where: { creatorId } }),
+      prisma.course.count({ where: { creatorId, status: 'PUBLISHED' } }),
+      prisma.enrollment.count({
+        where: { course: { creatorId } },
+      }),
+    ]);
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        userId: req.user.userId,
+        role: req.user.role,
+        stats: {
+          totalCourses,
+          publishedCourses,
+          totalStudents,
+          totalRevenue: 0,
+        },
       },
-    },
-  });
+    });
+  } catch (error) {
+    next(error);
+  }
 });
 
-// GET /api/creator/courses
-router.get('/courses', (req, res) => {
-  res.status(200).json({
-    status: 'success',
-    message: 'Creator courses list',
-    data: {
-      courses: [],
-    },
-  });
-});
+// ── Courses ─────────────────────────────────
+router.get('/courses', getCreatorCourses);
+router.get('/courses/:id', getCreatorCourse);
+router.post('/courses', createCourse);
+router.patch('/courses/:id', updateCourse);
+router.delete('/courses/:id', deleteCourse);
+router.patch('/courses/:id/publish', publishCourse);
+router.patch('/courses/:id/unpublish', unpublishCourse);
 
-// GET /api/creator/analytics
-router.get('/analytics', (req, res) => {
-  res.status(200).json({
-    status: 'success',
-    message: 'Creator analytics data',
-    data: {
-      views: 0,
-      enrollments: 0,
-      completionRate: 0,
-    },
-  });
+// ── Sections ────────────────────────────────
+router.post('/courses/:courseId/sections', createSection);
+router.patch('/sections/:sectionId', updateSection);
+router.delete('/sections/:sectionId', deleteSection);
+
+// ── Lessons ─────────────────────────────────
+router.post('/sections/:sectionId/lessons', createLesson);
+router.patch('/lessons/:lessonId', updateLesson);
+router.delete('/lessons/:lessonId', deleteLesson);
+
+// ── Analytics ───────────────────────────────
+router.get('/analytics', async (req, res, next) => {
+  try {
+    const { default: prisma } = await import('../lib/prisma.js');
+    const creatorId = req.user.userId;
+
+    const [enrollments, courses] = await Promise.all([
+      prisma.enrollment.count({ where: { course: { creatorId } } }),
+      prisma.course.count({ where: { creatorId } }),
+    ]);
+
+    res.status(200).json({
+      status: 'success',
+      data: {
+        views: 0,
+        enrollments,
+        courses,
+        completionRate: 0,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
 });
 
 export default router;

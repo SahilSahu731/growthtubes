@@ -18,50 +18,76 @@ enum Plan {
   PRO
 }
 
+enum CourseLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+  ALL_LEVELS
+}
+
+enum CourseStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum LessonType {
+  VIDEO
+  TEXT
+  QUIZ
+}
+
 model User {
-  id                String    @id @default(uuid()) @db.Uuid
-  email             String    @unique
+  id                String       @id @default(uuid()) @db.Uuid
+  email             String       @unique
   passwordHash      String
   
-  isEmailVerified   Boolean   @default(false)
+  isEmailVerified   Boolean      @default(false)
   
   otp               String?
   otpExpiresAt      DateTime?
-  otpAttempts        Int       @default(0)
+  otpAttempts        Int          @default(0)
   otpLastSentAt     DateTime?
+
+  // Password reset
+  resetOtp          String?
+  resetOtpExpiresAt DateTime?
+  resetOtpAttempts  Int          @default(0)
 
   refreshToken      String?
 
   profile           Profile?
+  enrollments       Enrollment[]
 
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
 
   @@map("users")
 }
 
 model Profile {
-  id                   String   @id @db.Uuid
-  username             String   @unique
+  id                   String       @id @db.Uuid
+  username             String       @unique
   fullName             String?
   avatarUrl            String?
   bio                  String?
 
-  role                 Role     @default(USER)
-  plan                 Plan     @default(FREE)
+  role                 Role         @default(USER)
+  plan                 Plan         @default(FREE)
 
-  isPremium            Boolean  @default(false)
+  isPremium            Boolean      @default(false)
 
-  streakCount          Int      @default(0)
-  longestStreak        Int      @default(0)
+  streakCount          Int          @default(0)
+  longestStreak        Int          @default(0)
 
-  onboardingCompleted  Boolean  @default(false)
+  onboardingCompleted  Boolean      @default(false)
   lastLoginAt          DateTime?
 
-  user                 User     @relation(fields: [id], references: [id], onDelete: Cascade)
+  user                 User         @relation(fields: [id], references: [id], onDelete: Cascade)
+  courses              Course[]     @relation("CreatorCourses")
 
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
 
   @@map("profiles")
 }
@@ -77,8 +103,99 @@ model Category {
   sortOrder   Int      @default(0)
   isActive    Boolean  @default(true)
 
+  courses     Course[]
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@map("categories")
+}
+
+model Course {
+  id            String       @id @default(uuid()) @db.Uuid
+  title         String
+  slug          String       @unique
+  description   String?
+  shortDescription String?
+  thumbnail     String?
+
+  level         CourseLevel  @default(ALL_LEVELS)
+  status        CourseStatus @default(DRAFT)
+
+  price         Float        @default(0)
+  isFree        Boolean      @default(true)
+
+  language      String       @default("English")
+  tags          String[]     @default([])
+
+  // Creator relation
+  creatorId     String       @db.Uuid
+  creator       Profile      @relation("CreatorCourses", fields: [creatorId], references: [id], onDelete: Cascade)
+
+  // Category relation
+  categoryId    String?      @db.Uuid
+  category      Category?    @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  sections      Section[]
+  enrollments   Enrollment[]
+
+  publishedAt   DateTime?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@map("courses")
+}
+
+model Section {
+  id          String   @id @default(uuid()) @db.Uuid
+  title       String
+  description String?
+  sortOrder   Int      @default(0)
+
+  courseId     String   @db.Uuid
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  lessons     Lesson[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("sections")
+}
+
+model Lesson {
+  id          String     @id @default(uuid()) @db.Uuid
+  title       String
+  description String?
+  type        LessonType @default(VIDEO)
+  content     String?
+  videoUrl    String?
+  duration    Int        @default(0)     // in seconds
+  sortOrder   Int        @default(0)
+  isFree      Boolean    @default(false) // preview lesson
+
+  sectionId   String     @db.Uuid
+  section     Section    @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@map("lessons")
+}
+
+model Enrollment {
+  id          String   @id @default(uuid()) @db.Uuid
+
+  userId      String   @db.Uuid
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  courseId     String   @db.Uuid
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  completedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, courseId])
+  @@map("enrollments")
 }
